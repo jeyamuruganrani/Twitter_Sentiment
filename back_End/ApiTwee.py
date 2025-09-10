@@ -1,9 +1,9 @@
 import time
 import tweepy
 import Bert
-
+import  clean
 # ================== AUTH ==================
-BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAADQY4AEAAAAAvspBxUH%2BVjX2ppGXCVsVlJsvVHQ%3DL4vOu9qckcQjH5GPMs7tR3x0sD73rpn912MYTtqGl3OMoqqP6J"  # 🔒 put in .env in production
+BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAADQY4AEAAAAA80Xc5YcWklMf%2F3ByrfNR7AM%2BR4c%3DmNa6xxamskvTW00Ulxj0tvEMAErxsQ1ZLW5ZEqbapETzZzPmbm"  # 🔒 put in .env in production
 
 client = tweepy.Client(
     bearer_token=BEARER_TOKEN,
@@ -35,7 +35,7 @@ def fetch_tweets(query: str, max_results: int = 100, pages: int = 1, retries: in
                 response = client.search_recent_tweets(
                     query=query,
                     max_results=max_results,
-                    tweet_fields=["created_at", "author_id", "lang"],
+                    tweet_fields=["text", "lang"],
                     next_token=next_token
                 )
 
@@ -46,10 +46,7 @@ def fetch_tweets(query: str, max_results: int = 100, pages: int = 1, retries: in
                 # Collect tweets
                 for tweet in response.data:
                     all_tweets.append({
-                        "id": tweet.id,
                         "text": tweet.text,
-                        "author_id": tweet.author_id,
-                        "created_at": tweet.created_at,
                         "lang": tweet.lang
                     })
 
@@ -83,8 +80,8 @@ def fetch_tweets(query: str, max_results: int = 100, pages: int = 1, retries: in
 # ================== RUN ==================
 if __name__ == "__main__":
     query = "Mahindra Thar Roxx"
-    max_results = 10     # tweets per page (max 100)
-    pages = 3           # how many pages to fetch
+    max_results = 50     # tweets per page (max 100)
+    pages = 10           # how many pages to fetch
 
     tweets = fetch_tweets(query, max_results=max_results, pages=pages)
 
@@ -93,8 +90,9 @@ if __name__ == "__main__":
         # Extract text only
         tweet_texts = [t["text"] for t in tweets]
 
+        tweet_clean = clean.clean_tweets(tweet_texts)
         # Run Sentiment Analysis
-        sentiments = Bert.BERT_text(tweet_texts)
+        sentiments = Bert.BERT_text(tweet_clean)
 
         # Print results with metadata
         print(sentiments)
